@@ -84,7 +84,6 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
 
 
-# 5. FAQ и другое
 class FAQ(models.Model):
     question = models.CharField(max_length=255)
     answer = models.TextField()
