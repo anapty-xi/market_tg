@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class Order(BaseModel):
-    conf = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)
 
     id: int
     status: str = "unpaid"

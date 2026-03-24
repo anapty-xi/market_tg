@@ -1,12 +1,12 @@
 from decimal import Decimal
 
-from entities.order import Order
-from entities.product import Product
+from apps.market.entities.order import Order
+from apps.market.entities.product import Product
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class OrderItem(BaseModel):
-    conf = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)
 
     id: int
     order: Order
