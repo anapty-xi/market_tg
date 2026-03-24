@@ -9,8 +9,7 @@ class Base:
 
 class GetCart(Base):
     async def execute(self, tg_id: int) -> list[CartItem]:
-        list_items = await self.inf.get_cart_items(tg_id)
-        return [CartItem(**item) for item in list_items]
+        return await self.inf.get_cart_items(tg_id)
 
 
 class AddToCart(Base):

@@ -11,5 +11,4 @@ class Base:
 
 class GetSubscriptions(Base):
     async def execute(self) -> list[Subscription]:
-        list_subs = await self.inf.get_subscribitions()
-        return [Subscription(**sub) for sub in list_subs]
+        return await self.inf.get_subscribitions()

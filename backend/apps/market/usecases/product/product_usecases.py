@@ -10,11 +10,9 @@ class Base:
 
 class GetProducts(Base):
     async def execute(self) -> list[Product]:
-        list_products = await self.inf.get_products()
-        return [Product(**prod) for prod in list_products]
+        return await self.inf.get_products()
 
 
 class GetCategories(Base):
     async def execute(self) -> list[Category]:
-        list_categories = await self.inf.get_categories()
-        return [Category(**cat) for cat in list_categories]
+        return await self.inf.get_categories()
