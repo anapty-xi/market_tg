@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from entities.profile import Profile
+from apps.market.entities.profile import Profile
 from pydantic import BaseModel, ConfigDict, Field
 
 

@@ -22,6 +22,14 @@ from apps.market.usecases.profile.profile_usecases import AddProfile, HasPhoneNu
 from apps.market.usecases.subscription.subscription_usecases import GetSubscriptions
 from django.http import JsonResponse
 from django.views import View
+from util.exceptions import (
+    CartItemNotExists,
+    CartNotExists,
+    InvalidStatus,
+    OrderNotExists,
+    ProductNotExists,
+    UserNotExists,
+)
 
 
 class ProfileViews(View):
@@ -33,8 +41,10 @@ class ProfileViews(View):
         body = json.loads(request.body)
 
         usecase = AddProfile(self.inf)
-
-        await usecase.execute(body["tg_id"], body["username"], body["phone_number"])
+        try:
+            await usecase.execute(body["tg_id"], body["username"], body["phone_number"])
+        except Exception as e:
+            return JsonResponse({"message": e}, status=400)
 
         return JsonResponse({"result": "profile created"}, status=201)
 
@@ -71,19 +81,29 @@ class OrderViews(View):
         body = json.loads(request.body)
 
         usecase = CreateOrder(self.inf)
+        try:
+            await usecase.execute(
+                body["tg_id"], body["address"], body["client_full_name"]
+            )
+            return JsonResponse({"result": "order_created"}, status=201)
 
-        await usecase.execute(body["tg_id"], body["address"], body["client_full_name"])
-
-        return JsonResponse({"result": "order_created"}, status=201)
+        except CartNotExists as e:
+            return JsonResponse({"message": str(e)}, status=404)
+        except UserNotExists as e:
+            return JsonResponse({"message": str(e)}, status=404)
 
     async def patch(self, request, order_id: int):
         status = request.GET.get("status")
 
         usecase = ChangeStatus(self.inf)
+        try:
+            await usecase.execute(order_id, status)
+            return JsonResponse({"message": "status changed"}, status=200)
 
-        await usecase.execute(order_id, status)
-
-        return JsonResponse({"message": "status changed"}, status=200)
+        except InvalidStatus as e:
+            return JsonResponse({"message": str(e)}, status=400)
+        except OrderNotExists as e:
+            return JsonResponse({"message": str(e)}, status=404)
 
     async def get(self, request):
         usecase = GetAllActiveOrders(self.inf)
@@ -132,29 +152,48 @@ class CartItemViews(View):
         self.inf = CartDBGW()
 
     async def post(self, request, tg_id: int):
-        prod_id = request.GET.get("prod_id")
+        prod_id = int(request.GET.get("prod_id"))
 
         usecase = AddToCart(self.inf)
-        await usecase.execute(tg_id, prod_id)
+        try:
+            await usecase.execute(tg_id, prod_id)
+            return JsonResponse({"message": "product added"}, status=201)
 
-        return JsonResponse({"message": "product added"}, status=201)
+        except UserNotExists as e:
+            return JsonResponse({"message": str(e)}, status=400)
+        except ProductNotExists as e:
+            return JsonResponse({"message": str(e)}, status=400)
 
     async def delete(self, request, tg_id: int):
-        prod_id = request.GET.get("prod_id")
+        prod_id = int(request.GET.get("prod_id"))
 
         usecase = DelFromCart(self.inf)
-        await usecase.execute(tg_id, prod_id)
+        try:
+            await usecase.execute(tg_id, prod_id)
+            return JsonResponse({"message": "product deleted"}, status=200)
 
-        return JsonResponse({"message": "product deleted"}, status=200)
+        except UserNotExists as e:
+            return JsonResponse({"message": str(e)}, status=400)
+        except ProductNotExists as e:
+            return JsonResponse({"message": str(e)}, status=400)
+        except CartItemNotExists as e:
+            return JsonResponse({"message": str(e)}, status=400)
 
     async def patch(self, request, tg_id: int):
-        prod_id = request.GET.get("prod_id")
+        prod_id = int(request.GET.get("prod_id"))
         increase = request.GET.get("increase") == "True"
 
         usecase = ChangeAmount(self.inf)
-        await usecase.execute(tg_id, prod_id, increase)
+        try:
+            await usecase.execute(tg_id, prod_id, increase)
+            return JsonResponse({"message": "amount changed"}, status=200)
 
-        return JsonResponse({"message": "amount changed"}, status=200)
+        except UserNotExists as e:
+            return JsonResponse({"message": str(e)}, status=400)
+        except ProductNotExists as e:
+            return JsonResponse({"message": str(e)}, status=400)
+        except CartItemNotExists as e:
+            return JsonResponse({"message": str(e)}, status=400)
 
 
 class CartViews(View):
@@ -164,16 +203,23 @@ class CartViews(View):
 
     async def get(self, request, tg_id: int):
         usecase = GetCart(self.inf)
-        cart_items = await usecase.execute(tg_id)
+        try:
+            cart_items = await usecase.execute(tg_id)
 
-        if cart_items:
-            return JsonResponse(
-                [item.model_dump() for item in cart_items], status=200, safe=False
-            )
-        return JsonResponse({"message": "no cart items for user"}, status=404)
+            if cart_items:
+                return JsonResponse(
+                    [item.model_dump() for item in cart_items], status=200, safe=False
+                )
+            return JsonResponse({"message": "no cart items for user"}, status=404)
+
+        except UserNotExists as e:
+            return JsonResponse({"message": str(e)}, status=400)
 
     async def delete(self, request, tg_id: int):
         usecase = DelCart(self.inf)
-        await usecase.execute(tg_id)
+        try:
+            await usecase.execute(tg_id)
+            return JsonResponse({"message": "cart deleted"}, status=200)
 
-        return JsonResponse({"message": "cart deleted"}, status=200)
+        except CartNotExists as e:
+            return JsonResponse({"message": str(e)}, status=400)

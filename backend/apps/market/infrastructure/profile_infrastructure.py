@@ -10,7 +10,7 @@ class ProfileDBGW(ProfileProtocol):
 
     async def has_phone_number(self, user: Profile) -> bool:
         try:
-            await DBProfile.objects.aget(tg_id=user.tg_id)
+            await DBProfile.objects.aget(tg_id=user.tg_id, username=user.username)
             return True
-        except exec:
+        except Exception:
             return False

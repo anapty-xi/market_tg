@@ -1,13 +1,10 @@
-import os
 from pathlib import Path
 
-from dotenv import load_dotenv
-
-load_dotenv()
+from util.secret_reader import secret_reader
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = str(os.getenv("SECRET_KEY"))
+SECRET_KEY = secret_reader("SECRET_KEY")
 
 DEBUG = True
 
@@ -27,7 +24,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
+    # "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -55,11 +52,11 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": str(os.getenv("DB_NAME")),
-        "USER": str(os.getenv("DB_USER")),
-        "PASSWORD": str(os.getenv("DB_PASSWORD")),
-        "HOST": str(os.getenv("DB_HOST")),
-        "PORT": str(os.getenv("DB_PORT")),
+        "NAME": "market",
+        "USER": "market_adm",
+        "PASSWORD": secret_reader("DB_PASSWORD"),
+        "HOST": "postgres",
+        "PORT": "5432",
     }
 }
 
