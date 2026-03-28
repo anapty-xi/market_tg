@@ -21,4 +21,4 @@ ENTRYPOINT ["/backend/entrypoint.sh"]
 HEALTHCHECK --interval=90s --timeout=5s --start-period=20s --start-interval=5s --retries=3 \
     CMD python3 -c "import requests; requests.get('http://127.0.0.1:8000/health_check/').raise_for_status()" || exit 1
 
-CMD ["uvicorn", "config.asgi:application", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "config.asgi:application", "--host", "0.0.0.0", "--port", "8000", "--reload"]

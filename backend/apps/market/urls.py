@@ -3,10 +3,11 @@ from django.urls import path
 from .views import (
     CartItemViews,
     CartViews,
-    CategoryViews,
+    MainCategoryViews,
     OrderViews,
     ProductViews,
     ProfileViews,
+    SubCategoryViews,
     SubscriptionViews,
 )
 
@@ -18,8 +19,9 @@ urlpatterns = [
     path("subscription/", SubscriptionViews.as_view()),
     path("order/", OrderViews.as_view()),
     path("order/<int:order_id>/", OrderViews.as_view()),
-    path("product/", ProductViews.as_view()),
-    path("category/", CategoryViews.as_view()),
+    path("products/<int:cat_id>/", ProductViews.as_view()),
+    path("main_categories/", MainCategoryViews.as_view()),
+    path("sub_categories/<int:main_cat_id>/", SubCategoryViews.as_view()),
     path("cart_item/<int:tg_id>/", CartItemViews.as_view()),
     path("cart/<int:tg_id>/", CartViews.as_view()),
 ]

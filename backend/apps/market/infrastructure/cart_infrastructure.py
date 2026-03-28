@@ -8,7 +8,7 @@ class CartDBGW(CartProtocol):
     async def get_cart_items(self, tg_id: int) -> list[CartItem]:
         user = await Profile.objects.aget(tg_id=tg_id)
         orm_items = DBItem.objects.select_related(
-            "product", "product__category", "user"
+            "product", "product__category", "product__category__parent", "user"
         ).filter(user=user)
         return [CartItem.model_validate(item) async for item in orm_items]
 

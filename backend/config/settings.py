@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from util.secret_reader import secret_reader
@@ -8,7 +9,12 @@ SECRET_KEY = secret_reader("SECRET_KEY")
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["api", "127.0.0.1"]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8001",
+    "http://127.0.0.1:8001",
+]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -77,6 +83,17 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+STATIC_URL = "/static/"
+
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+MEDIA_URL = "/media/"
+
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "UTC"
@@ -84,6 +101,3 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 
 USE_TZ = True
-
-
-STATIC_URL = "static/"

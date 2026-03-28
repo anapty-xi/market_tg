@@ -22,13 +22,18 @@ class GetCart(Base):
 
 
 class AddToCart(Base):
-    async def execute(self, tg_id: int, prod_id: int) -> None:
+    async def execute(self, tg_id: int, prod_id: int) -> bool:
         if not await self.inf.is_user_exists(tg_id):
             raise UserNotExists("user does not exist")
         if not await self.inf.is_product_exists(prod_id):
             raise ProductNotExists("product not exist")
 
+        if await self.inf.is_cart_item_exists(tg_id, prod_id):
+            await self.inf.change_amount(tg_id, prod_id, increase=True)
+            return False
+
         await self.inf.add_product(tg_id, prod_id)
+        return True
 
 
 class ChangeAmount(Base):
