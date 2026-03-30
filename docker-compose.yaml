@@ -117,25 +117,25 @@ services:
     networks:
       - app-network
 
-  newsletter_worker:
-    build: ./bot
-    image: bot
-    command: celery -A workers.newsletter worker --loglevel=info
-    volumes:
-      - media_volume:/bot/media:ro
-    environment: 
-      BOT_TOKEN: /run/secrets/bot_token
-      REDIS_PASSWORD: /run/secrets/redis_password
-      WEB_APP_URL: /run/secrets/web_app_url
-      API_URL: /run/secrets/api_url
-    secrets: 
-      - redis_password
-      - web_app_url
-      - api_url
-      - bot_token
-    depends_on:
-      - redis
-      - api
+  # newsletter_worker:
+  #   build: ./bot
+  #   image: bot
+  #   command: celery -A workers.newsletter worker --loglevel=info
+  #   volumes:
+  #     - media_volume:/bot/media:ro
+  #   environment: 
+  #     BOT_TOKEN: /run/secrets/bot_token
+  #     REDIS_PASSWORD: /run/secrets/redis_password
+  #     WEB_APP_URL: /run/secrets/web_app_url
+  #     API_URL: /run/secrets/api_url
+  #   secrets: 
+  #     - redis_password
+  #     - web_app_url
+  #     - api_url
+  #     - bot_token
+  #   depends_on:
+  #     - redis
+  #     - api
 
 
 
