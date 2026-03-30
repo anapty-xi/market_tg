@@ -52,10 +52,14 @@ services:
       - app-network
 
   webapp:
-    build: ./webapp/
+    build: 
+      context: ./webapp/
+      args:
+        - VITE_USER_ID=${USER_ID:-8061009595}
     image: webapp
     expose:
       - "80"
+
     depends_on:
       bot:
        condition: service_started

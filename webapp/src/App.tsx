@@ -8,6 +8,7 @@ import { CartModal } from './components/CartModal';
 import { OrderForm } from './components/OrderForm'; 
 
 const BASE_URL = "http://localhost:8000"; 
+import.meta.env.VITE_USER_ID
 
 function App() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -49,7 +50,7 @@ function App() {
 
     const fetchCart = async () => {
         const tg = window.Telegram?.WebApp;
-        const userId = tg?.initDataUnsafe?.user?.id || 8061009595; 
+        const userId = tg?.initDataUnsafe?.user?.id || import.meta.env.VITE_USER_ID; 
         try {
             const res = await axios.get(`${BASE_URL}/api/v1/cart/${userId}/?_t=${Date.now()}`);
             setCartItems(res.data);
@@ -59,7 +60,7 @@ function App() {
     };
 
     const handleUpdateQuantity = async (productId: number, increase: string) => {
-        const userId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 8061009595;
+        const userId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || import.meta.env.VITE_USER_ID;
         try {
             await axios.patch(`${BASE_URL}/api/v1/cart_item/${userId}/?prod_id=${productId}&increase=${increase}`);
             await fetchCart();
@@ -70,7 +71,7 @@ function App() {
 
     const handleRemoveItem = async (productId: number) => {
         setCartItems(prev => prev.filter(item => item.product.id !== productId));
-        const userId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 8061009595;
+        const userId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || import.meta.env.VITE_USER_ID;
         try {
             await axios.delete(`${BASE_URL}/api/v1/cart_item/${userId}/?prod_id=${productId}`);
             await fetchCart();
@@ -82,7 +83,7 @@ function App() {
 
     const addToCart = async (productId: number) => {
         const tg = window.Telegram?.WebApp;
-        const userId = tg?.initDataUnsafe?.user?.id || 8061009595; 
+        const userId = tg?.initDataUnsafe?.user?.id || import.meta.env.VITE_USER_ID; 
         try {
             await axios.post(`${BASE_URL}/api/v1/cart_item/${userId}/?prod_id=${productId}`);
             tg?.HapticFeedback.notificationOccurred('success');
@@ -98,12 +99,12 @@ function App() {
 
     const handleCreateOrder = async (fullName: string, address: string) => {
         const tg = window.Telegram?.WebApp;
-        const userId = tg?.initDataUnsafe?.user?.id || 8061009595;
+        const userId = tg?.initDataUnsafe?.user?.id || import.meta.env.VITE_USER_ID;
         try {
                     await axios.post(`${BASE_URL}/api/v1/order/`, {
                         tg_id: userId,
                         address: address,
-                        client_full_name: fullName // Используем ключ из твоего ТЗ
+                        client_full_name: fullName
                     });
 
                     tg?.HapticFeedback.notificationOccurred('success');

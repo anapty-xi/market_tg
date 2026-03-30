@@ -3,6 +3,10 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+ARG VITE_USER_ID
+
+ENV VITE_USER_ID=$VITE_USER_ID
+
 COPY package*.json ./
 
 RUN npm install
