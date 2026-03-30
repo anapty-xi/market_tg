@@ -27,3 +27,8 @@ class HasPhoneNumber(Base):
             raise ValueError("data is invalid")
 
         return await self.inf.has_phone_number(user)
+
+
+class GetAllUsers(Base):
+    async def execute(self) -> list[Profile]:
+        return await self.inf.get_all_users()

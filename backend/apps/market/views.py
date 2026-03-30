@@ -4,6 +4,7 @@ from apps.market.infrastructure.cart_infrastructure import CartDBGW
 from apps.market.infrastructure.order_infrastructure import OrderDBGW
 from apps.market.infrastructure.product_infrastructure import ProductDBGW
 from apps.market.infrastructure.profile_infrastructure import ProfileDBGW
+from apps.market.infrastructure.settings_infrastructure import SettingsDBGW
 from apps.market.infrastructure.subscription_infrastructure import SubscriptionDVGW
 from apps.market.usecases.cart.cart_usecases import (
     AddToCart,
@@ -16,13 +17,19 @@ from apps.market.usecases.order.order_usecases import (
     ChangeStatus,
     CreateOrder,
     GetAllActiveOrders,
+    GetOrder,
 )
 from apps.market.usecases.product.product_usecases import (
     GetMainCategories,
     GetProducts,
     GetSubCategories,
 )
-from apps.market.usecases.profile.profile_usecases import AddProfile, HasPhoneNumber
+from apps.market.usecases.profile.profile_usecases import (
+    AddProfile,
+    GetAllUsers,
+    HasPhoneNumber,
+)
+from apps.market.usecases.settings.settings_usecases import GetAdminGroupId
 from apps.market.usecases.subscription.subscription_usecases import GetSubscriptions
 from django.http import JsonResponse
 from django.views import View
@@ -61,6 +68,20 @@ class ProfileViews(View):
         if phone_num:
             return JsonResponse({"meessage": "ok"}, status=200)
         return JsonResponse({"message": "user does not have profile"}, status=404)
+
+
+class UsersViews(View):
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.inf = ProfileDBGW()
+
+    async def get(self, request):
+        usecase = GetAllUsers(self.inf)
+        users = await usecase.execute()
+
+        if users:
+            return JsonResponse([u.model_dump() for u in users], status=200, safe=False)
+        return JsonResponse({"message": "no users"}, status=404)
 
 
 class SubscriptionViews(View):
@@ -111,12 +132,25 @@ class OrderViews(View):
         except OrderNotExists as e:
             return JsonResponse({"message": str(e)}, status=404)
 
+    async def get(self, request, order_id: int):
+        usecase = GetOrder(self.inf)
+        order = await usecase.execute(order_id)
+
+        if order:
+            return JsonResponse(order, safe=False)
+        return JsonResponse({"message": "order not found"}, status=404)
+
+
+class ActiveOrdersViews(View):
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.inf = OrderDBGW()
+
     async def get(self, request):
         usecase = GetAllActiveOrders(self.inf)
         orders = await usecase.execute()
-
         if orders:
-            return JsonResponse([ord.model_dump() for ord in orders], safe=False)
+            return JsonResponse(orders, safe=False)
         return JsonResponse({"message": "no active orders"}, status=404)
 
 
@@ -247,3 +281,14 @@ class CartViews(View):
 
         except CartNotExists as e:
             return JsonResponse({"message": str(e)}, status=400)
+
+
+class SettingsViews(View):
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.inf = SettingsDBGW()
+
+    async def get(self, request):
+        usecase = GetAdminGroupId(self.inf)
+        admin_group_id = await usecase.execute()
+        return JsonResponse({"admin_group_id": admin_group_id}, status=200)

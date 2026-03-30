@@ -9,11 +9,18 @@ services:
       - static_volume:/backend/staticfiles
       - media_volume:/backend/media  
     environment: 
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
       SECRET_KEY: /run/secrets/secret_key
       DB_PASSWORD: /run/secrets/db_password
+      REDIS_PASSWORD: /run/secrets/redis_password
+      WEB_APP_URL: /run/secrets/web_app_url
     secrets: 
       - secret_key
       - db_password
+      - redis_password
+      - web_app_url
     depends_on:
       postgres:
         condition: service_healthy
@@ -28,9 +35,30 @@ services:
       - media_volume:/bot/media:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    environment: 
+      BOT_TOKEN: /run/secrets/bot_token
+      REDIS_PASSWORD: /run/secrets/redis_password
+      WEB_APP_URL: /run/secrets/web_app_url
+      API_URL: /run/secrets/api_url
+    secrets: 
+      - redis_password
+      - web_app_url
+      - api_url
+      - bot_token
     depends_on:
       api:
         condition: service_healthy
+    networks:
+      - app-network
+
+  webapp:
+    build: ./webapp/
+    image: webapp
+    expose:
+      - "80"
+    depends_on:
+      bot:
+       condition: service_started
     networks:
       - app-network
 
@@ -57,6 +85,24 @@ services:
       start_interval: 10s
       start_period: 20s
 
+  redis:
+    image: redis:7-alpine
+    command: >
+      sh -c 'redis-server --requirepass "$(cat /run/secrets/redis_password)"'
+    secrets:
+      - redis_password
+    expose:
+      - "6379"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_interval: 5s
+      start_period: 10s
+
   nginx:
     image: nginx:stable-alpine
     ports:
@@ -67,10 +113,31 @@ services:
       - media_volume:/usr/share/nginx/html/media:ro
     depends_on:
       - api
+      - webapp
     networks:
       - app-network
 
-  
+  newsletter_worker:
+    build: ./bot
+    image: bot
+    command: celery -A workers.newsletter worker --loglevel=info
+    volumes:
+      - media_volume:/bot/media:ro
+    environment: 
+      BOT_TOKEN: /run/secrets/bot_token
+      REDIS_PASSWORD: /run/secrets/redis_password
+      WEB_APP_URL: /run/secrets/web_app_url
+      API_URL: /run/secrets/api_url
+    secrets: 
+      - redis_password
+      - web_app_url
+      - api_url
+      - bot_token
+    depends_on:
+      - redis
+      - api
+
+
 
 volumes:
   postgres_data: 
@@ -88,4 +155,16 @@ secrets:
 
   secret_key:
     file: ./secrets/secret_key.txt
+
+  redis_password:
+    file: ./secrets/redis_password.txt
+
+  web_app_url:
+    file: ./secrets/web_app_url.txt
+
+  api_url:
+    file: ./secrets/api_url.txt
+
+  bot_token:
+    file: ./secrets/bot_token.txt
 

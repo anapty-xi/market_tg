@@ -14,3 +14,7 @@ class ProfileDBGW(ProfileProtocol):
             return True
         except Exception:
             return False
+
+    async def get_all_users(self) -> list[Profile]:
+        orm_users = DBProfile.objects.all()
+        return [Profile.model_validate(user) async for user in orm_users]

@@ -1,4 +1,3 @@
-from apps.market.entities.order import Order
 from apps.market.usecases.order.order_usecases_protocol import OrderProtocol
 from util.exceptions import CartNotExists, InvalidStatus, OrderNotExists, UserNotExists
 
@@ -17,6 +16,7 @@ class CreateOrder(Base):
                 order_id = await self.inf.create_order(tg_id, address, client_full_name)
                 await self.inf.create_order_items(tg_id, order_id)
                 await self.inf.del_cart(tg_id)
+                await self.inf.notify_admin(order_id)
             else:
                 raise CartNotExists("user does not have cart")
         else:
@@ -35,5 +35,10 @@ class ChangeStatus(Base):
 
 
 class GetAllActiveOrders(Base):
-    async def execute(self) -> list[Order]:
+    async def execute(self) -> list[dict]:
         return await self.inf.get_all_active_orders()
+
+
+class GetOrder(Base):
+    async def execute(self, order_id: int) -> dict:
+        return await self.inf.get_order(order_id)

@@ -1,7 +1,12 @@
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+from redis import Redis as RedisSync
+from redis.asyncio import Redis
 from util.secret_reader import secret_reader
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -9,12 +14,15 @@ SECRET_KEY = secret_reader("SECRET_KEY")
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["api", "127.0.0.1"]
+ALLOWED_HOSTS = ["api", "127.0.0.1", "localhost"]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8001",
     "http://127.0.0.1:8001",
+    secret_reader("WEB_APP_URL"),
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -23,10 +31,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
     "apps.market",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -101,3 +111,24 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 
 USE_TZ = True
+
+
+REDIS_HOST = str(os.getenv("REDIS_HOST"))
+REDIS_PORT = int(os.getenv("REDIS_PORT"))
+REDIS_DB = int(os.getenv("REDIS_DB"))
+REDIS_PASSWORD = secret_reader("REDIS_PASSWORD")
+
+CELERY_BROKER_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+
+REDIS_OBJ = Redis(
+    host=REDIS_HOST,
+    port=REDIS_PORT,
+    db=REDIS_DB,
+    password=REDIS_PASSWORD,
+)
+REDIS_OBJ_SYNC = RedisSync(
+    host=REDIS_HOST,
+    port=REDIS_PORT,
+    db=REDIS_DB,
+    password=REDIS_PASSWORD,
+)
